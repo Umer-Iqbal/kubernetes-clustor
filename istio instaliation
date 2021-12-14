@@ -1,0 +1,31 @@
+https://istio.io/latest/docs/examples/bookinfo/
+
+https://istio.io/latest/news/releases/1.12.x/announcing-1.12.1/
+curl -L https://istio.io/downloadIstio | sh -
+export PATH="$PATH:/home/ubuntu/umer/istio-1.12.1/bin"
+istioctl install --set profile=demo -y
+kubectl label namespace default istio-injection=enabled
+
+kubectl get svc istio-ingressgateway -n istio-system
+
+export INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="http2")].nodePort}')
+
+export SECURE_INGRESS_PORT=$(kubectl -n istio-system get service istio-ingressgateway -o jsonpath='{.spec.ports[?(@.name=="https")].nodePort}')
+
+export INGRESS_HOST=$(kubectl get po -l istio=ingressgateway -n istio-system -o jsonpath='{.items[0].status.hostIP}')
+
+export GATEWAY_URL=$INGRESS_HOST:$INGRESS_PORT
+
+
+cd istio-1.12.1/
+
+kubectl apply -f samples/addons
+kubectl rollout status deployment/kiali -n istio-system
+
+istioctl dashboard kiali
+istioctl dashboard jaeger
+istioctl dashboard graffana
+istioctl dashboard prometheus
+
+
+
